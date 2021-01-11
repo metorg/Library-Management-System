@@ -7,7 +7,25 @@
 #ifndef PCH_H
 #define PCH_H
 
+// #pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
+
+// MySQL 헤더
+#include <mysql.h>
+#include <WinSock2.h>
+#pragma comment(lib,"libmysql.lib")
+#pragma comment(lib,"ws2_32.lib")
+
+// DB연결 초기화 헤더
+#define MY_IP "localhost"
+#define DB_USER "root"
+#define DB_PASS "root"
+#define DB_NAME "javadb"
+
+extern MYSQL_ROW Sql_Row; // mysql 의 각행의 인덱스값들 불러온다.
+extern MYSQL_RES *Sql_Result; // mysql의 결과
+extern MYSQL Connect; // mysql의 연결을 담당
 
 #endif //PCH_H

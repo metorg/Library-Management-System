@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "AddEditDlg.h"
+#include <vector>
+
 
 // AdminBookDlg 대화 상자
 
@@ -17,10 +19,29 @@ public:
 	enum { IDD = IDD_ADMIN_BOOK };
 #endif
 
+	BOOL m_bAscending;
+	struct SORTPARAM
+	{
+		int iSortColumn;
+		bool bSortDirect;
+		CListCtrl *pList;
+	};
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
 	DECLARE_MESSAGE_MAP()
 public:
+	CListCtrl m_list;
+	virtual BOOL OnInitDialog();
 	afx_msg void OnButtonBookAdd();
+	afx_msg void OnButtonBookDelete();
+	afx_msg void OnButtonBookEdit();
+	afx_msg void OnHdnItemClickList(NMHDR *nMNHDR, LRESULT *pResult);
+	static int CALLBACK CompareItem(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+	void ConnectDB();
+	void PrintDB();
+	void InsertDB(CString title, CString author, CString publisher, CString isbn, CString quantity);
+	void EditDB(CString id, CString title, CString author, CString publisher, CString isbn, CString quantity);
+	void DeleteDB();
+	BOOL editmode;
 };

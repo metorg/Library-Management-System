@@ -17,7 +17,7 @@ public:
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_BOOK_MANAGEMENT_DIALOG };
+	enum { IDD = IDD_LOGIN };
 #endif
 
 	protected:
@@ -35,7 +35,11 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnButtonLogin();
+	afx_msg void OnButtonUser();
 	afx_msg void OnButtonAdmin();
 	afx_msg void OnButtonSignup();
+	afx_msg void OnButtonLogin();
+	CString m_strID;
+	CString m_strPW;
+	CButton m_rUser;
 };

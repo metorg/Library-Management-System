@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "AdminBookDlg.h"
 
 // AddEditDlg 대화 상자
 
@@ -20,4 +21,8 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
 	DECLARE_MESSAGE_MAP()
+public:
+	virtual BOOL OnInitDialog();
+	afx_msg void OnButtonAddEditOk();
+	CWnd *pParent;
 };

@@ -53,7 +53,9 @@ END_MESSAGE_MAP()
 
 
 CBookManagementDlg::CBookManagementDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_BOOK_MANAGEMENT_DIALOG, pParent)
+	: CDialogEx(IDD_LOGIN, pParent)
+	, m_strID(_T(""))
+	, m_strPW(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -61,15 +63,19 @@ CBookManagementDlg::CBookManagementDlg(CWnd* pParent /*=nullptr*/)
 void CBookManagementDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT_ID, m_strID);
+	DDX_Text(pDX, IDC_EDIT_PW, m_strPW);
+	DDX_Control(pDX, IDC_RADIO_USER, m_rUser);
 }
 
 BEGIN_MESSAGE_MAP(CBookManagementDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BUTTON_LOGIN, &CBookManagementDlg::OnButtonLogin)
+	ON_BN_CLICKED(IDC_BUTTON_USER, &CBookManagementDlg::OnButtonUser)
 	ON_BN_CLICKED(IDC_BUTTON_ADMIN, &CBookManagementDlg::OnButtonAdmin)
 	ON_BN_CLICKED(IDC_BUTTON_SIGNUP, &CBookManagementDlg::OnButtonSignup)
+	ON_BN_CLICKED(IDC_BUTTON_LOGIN, &CBookManagementDlg::OnButtonLogin)
 END_MESSAGE_MAP()
 
 
@@ -105,6 +111,7 @@ BOOL CBookManagementDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	m_rUser.SetCheck(TRUE);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -159,7 +166,7 @@ HCURSOR CBookManagementDlg::OnQueryDragIcon()
 }
 
 
-void CBookManagementDlg::OnButtonLogin()
+void CBookManagementDlg::OnButtonUser()
 {
 	// 방법 1
 	UserDlg userDlg;
@@ -186,4 +193,54 @@ void CBookManagementDlg::OnButtonSignup()
 	// 방법 1
 	SignupDlg signupDlg;
 	signupDlg.DoModal();
+}
+
+
+void CBookManagementDlg::OnButtonLogin()
+{
+	UpdateData(TRUE);
+
+	// 빈칸이 있을 경우
+	if ((CStringA)m_strID == "" && (CStringA)m_strPW == "")
+		MessageBox(TEXT("아이디와 패스워드를 입력해주세요."), TEXT("로그인 실패"), MB_OK);
+	else if ((CStringA)m_strID == "")
+		MessageBox(TEXT("아이디를 입력해주세요."), TEXT("로그인 실패"), MB_OK);
+	else if ((CStringA)m_strPW == "")
+		MessageBox(TEXT("패스워드를 입력해주세요."), TEXT("로그인 실패"), MB_OK);
+
+	// 회원으로 로그인
+	else if (m_rUser.GetCheck())
+	{
+		mysql_init(&Connect);
+		mysql_real_connect(&Connect, MY_IP, DB_USER, DB_PASS, DB_NAME, 3306, (char *)NULL, 0);
+		mysql_query(&Connect, "set names euckr");
+		CString query;
+		query.Format(_T("select * from user where id = '%s' and pw = '%s'"), m_strID, m_strPW);
+		mysql_query(&Connect, (CStringA)query);
+		Sql_Result = mysql_store_result(&Connect);
+		if ((Sql_Row = mysql_fetch_row(Sql_Result)) == NULL)
+		{
+			MessageBox(TEXT("일치하는 회원이 없습니다."), TEXT("로그인 실패"), MB_OK);
+		}
+		else
+		{
+			UserDlg userDlg;
+			userDlg.DoModal();
+		}
+		mysql_close(&Connect);
+	}
+
+	// 관리자로 로그인
+	else
+	{
+		if ((CStringA)(m_strPW) == "admin" && (CStringA)(m_strPW) == "admin")
+		{
+			AdminDlg adminDlg;
+			adminDlg.DoModal();
+		}
+		else
+		{
+			MessageBox(TEXT("잘못된 접근입니다."), TEXT("경고"), MB_OK);
+		}
+	}
 }

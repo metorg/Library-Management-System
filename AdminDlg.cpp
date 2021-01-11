@@ -53,12 +53,12 @@ BOOL AdminDlg::OnInitDialog()
 
 	pAdminBookDlg = new AdminBookDlg;
 	pAdminBookDlg->Create(IDD_ADMIN_BOOK, &m_Tab);
-	pAdminBookDlg->MoveWindow(0, 25, rect.Width(), rect.Height());
+	pAdminBookDlg->MoveWindow(0, 20, rect.Width() + 1, rect.Height() - 5);
 	pAdminBookDlg->ShowWindow(SW_SHOW);
 
 	pAdminUserDlg = new AdminUserDlg;
 	pAdminUserDlg->Create(IDD_ADMIN_USER, &m_Tab);
-	pAdminUserDlg->MoveWindow(0, 25, rect.Width(), rect.Height());
+	pAdminUserDlg->MoveWindow(0, 20, rect.Width() + 1, rect.Height() - 5);
 	pAdminUserDlg->ShowWindow(SW_HIDE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
