@@ -37,7 +37,9 @@ BEGIN_MESSAGE_MAP(AdminUserDlg, CDialogEx)
 	ON_COMMAND(ID_MENU_ADD, &AdminUserDlg::OnButtonUserAdd)
 	ON_COMMAND(ID_MENU_EDIT, &AdminUserDlg::OnButtonUserEdit)
 	ON_COMMAND(ID_MENU_DELETE, &AdminUserDlg::OnButtonUserDelete)
+	ON_COMMAND(ID_MENU_RESET, &AdminUserDlg::OnButtonUserReset)
 	ON_WM_CONTEXTMENU()
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_LIST_USER, &AdminUserDlg::OnCustomdrawList)
 END_MESSAGE_MAP()
 
 
@@ -53,11 +55,12 @@ BOOL AdminUserDlg::OnInitDialog()
 	m_list.GetClientRect(rect);
 
 	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-	m_list.InsertColumn(0, _T("ID"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
-	m_list.InsertColumn(1, _T("PW"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
-	m_list.InsertColumn(2, _T("이름"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
-	m_list.InsertColumn(3, _T("연락처"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
-	m_list.InsertColumn(4, _T("대여 권 수"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(0, _T("ID"), LVCFMT_LEFT, int(rect.Width() * 0.15), -1);
+	m_list.InsertColumn(1, _T("PW"), LVCFMT_LEFT, int(rect.Width() * 0.15), -1);
+	m_list.InsertColumn(2, _T("이름"), LVCFMT_LEFT, int(rect.Width() * 0.15), -1);
+	m_list.InsertColumn(3, _T("연락처"), LVCFMT_LEFT, int(rect.Width() * 0.25), -1);
+	m_list.InsertColumn(4, _T("대여 권 수"), LVCFMT_LEFT, int(rect.Width() * 0.15), -1);
+	m_list.InsertColumn(5, _T("연체 횟수"), LVCFMT_LEFT, int(rect.Width() * 0.15), -1);
 	//칼럼 추가 인덱스, 칼람명, 정렬방향, 칼럼길이, 서브아이템 갯수
 
 	PrintDB();
@@ -109,6 +112,35 @@ void AdminUserDlg::OnButtonUserDelete()
 }
 
 
+void AdminUserDlg::OnButtonUserReset()
+{
+	UINT uSelectedCount = m_list.GetSelectedCount();
+	POSITION pos = m_list.GetFirstSelectedItemPosition();
+	int nSelected = m_list.GetNextSelectedItem(pos);
+
+	if (uSelectedCount <= 0)
+	{
+		MessageBox(_T("선택된 회원이 없습니다."));
+		return;
+	}
+	else if (uSelectedCount > 1)
+	{
+		MessageBox(_T("한 개만 선택해주세요."));
+		return;
+	}
+
+	CString query;
+	query.Format(_T("UPDATE user SET overdue=0 WHERE id='%s'"), m_list.GetItemText(nSelected, 0));
+
+	if (mysql_query(&Connect, (CStringA)query))
+	{
+		MessageBox(_T("Edit Error"));
+	}
+
+	PrintDB();
+}
+
+
 void AdminUserDlg::OnContextMenu(CWnd * /*pWnd*/, CPoint point)
 {
 	CMenu menu;
@@ -118,9 +150,57 @@ void AdminUserDlg::OnContextMenu(CWnd * /*pWnd*/, CPoint point)
 	menu.AppendMenu(MF_STRING, ID_MENU_ADD, _T("추가"));
 	menu.AppendMenu(MF_STRING, ID_MENU_EDIT, _T("수정"));
 	menu.AppendMenu(MF_STRING, ID_MENU_DELETE, _T("삭제"));
+	menu.AppendMenu(MF_STRING, ID_MENU_RESET, _T("연체 횟수 초기화"));
 
 	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
 	menu.DestroyMenu();
+}
+
+
+void AdminUserDlg::OnCustomdrawList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	CString strType;
+	BOOL bNoticeFlag = FALSE;
+	BOOL bWarnningFlag = FALSE;
+
+	NMLVCUSTOMDRAW *pLVCD = (NMLVCUSTOMDRAW *)pNMHDR;
+
+	strType = m_list.GetItemText(pLVCD->nmcd.dwItemSpec, 5);
+
+	if (_ttoi(strType) >= 5)
+	{
+		bWarnningFlag = TRUE;
+	}
+
+	else if (_ttoi(strType) >= 3)
+	{
+		bNoticeFlag = TRUE;
+	}
+
+	*pResult = 0;
+
+	if (CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage)
+		*pResult = CDRF_NOTIFYITEMDRAW;
+
+	else if (CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
+		if (bWarnningFlag)
+		{
+			pLVCD->clrText = RGB(255, 0, 0);  // 글자 색 변경 
+			//pLVCD->clrTextBk = RGB(0, 0, 0);  // 배경 색 변경 
+		}
+		else if (bNoticeFlag)
+		{
+			pLVCD->clrText = RGB(0, 0, 255);
+			//pLVCD->clrTextBk = RGB(237, 255, 255);
+		}
+		else
+		{
+			pLVCD->clrText = RGB(0, 0, 0);
+		}
+
+		*pResult = CDRF_DODEFAULT;
+	}
 }
 
 
@@ -171,12 +251,14 @@ void AdminUserDlg::PrintDB()
 		CString name;
 		CString tel;
 		CString book;
+		CString overdue;
 
 		id += Sql_Row[0];
 		pw += Sql_Row[1];
 		name += Sql_Row[2];
 		tel += Sql_Row[3];
 		book += Sql_Row[4];
+		overdue += Sql_Row[5];
 
 		m_list.InsertItem(seq, _T(""));
 		m_list.SetItem(seq, 0, LVIF_TEXT, id, 0, 0, 0, NULL);
@@ -184,6 +266,7 @@ void AdminUserDlg::PrintDB()
 		m_list.SetItem(seq, 2, LVIF_TEXT, name, 0, 0, 0, NULL);
 		m_list.SetItem(seq, 3, LVIF_TEXT, tel, 0, 0, 0, NULL);
 		m_list.SetItem(seq, 4, LVIF_TEXT, book, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 5, LVIF_TEXT, overdue, 0, 0, 0, NULL);
 
 		seq++;
 		seq_string.Format(_T("%d"), seq);
@@ -198,9 +281,11 @@ void AdminUserDlg::DeleteDB()
 	vector<int> id;
 	int nSelected;
 
+	id.clear();
+
 	if (uSelectedCount <= 0)
 	{
-		MessageBox(_T("선택된 책이 없습니다."));
+		MessageBox(_T("선택된 회원이 없습니다."));
 		return;
 	}
 
@@ -213,7 +298,7 @@ void AdminUserDlg::DeleteDB()
 	for (int i = (int)id.size() - 1; i >= 0; --i)
 	{
 		CString query;
-		query.Format(_T("DELETE FROM user WHERE id = '%s'"), m_list.GetItemText(id[i], 0));
+		query.Format(_T("DELETE FROM user WHERE id='%s'"), m_list.GetItemText(id[i], 0));
 		if (mysql_query(&Connect, (CStringA)query))
 		{
 			MessageBox(_T("Delete Error"));

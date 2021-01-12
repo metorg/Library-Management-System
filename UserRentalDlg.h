@@ -29,11 +29,11 @@ public:
 	afx_msg void OnBntClickedButtonSearch();
 	void ConnectDB();
 	void PrintDB(CString strQ);
-	BOOLEAN OverlapDB(CString isbn);
+	BOOLEAN OverlapDB(CString isbn); // 중복 대여 함수
+	BOOLEAN LimitDB(); // 권수 제한 함수
 	CButton m_CheckAuthor;
 	CButton m_CheckPublisher;
 	CButton m_CheckTitle;
 	CWnd *pParent;
 	afx_msg void OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult);
-
 };

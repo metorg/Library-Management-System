@@ -44,4 +44,5 @@ public:
 	CButton m_rUser;
 	CStatic m_imgBg;
 	afx_msg HBRUSH OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 };

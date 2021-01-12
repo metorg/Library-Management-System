@@ -268,13 +268,34 @@ HBRUSH CBookManagementDlg::OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor)
 		CPoint lr((rect.right - rect.left - 2), (rect.bottom - rect.top - 2));
 		pDC->FillSolidRect(CRect(ul, lr), RGB(255, 255, 255));
 		pWnd->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	}
-	else
-	{
-		pDC->SetBkMode(TRANSPARENT);
-		return reinterpret_cast<HBRUSH>(::GetStockObject(NULL_BRUSH));
 	}*/
+	switch (pWnd->GetDlgCtrlID())
+	{
+		case IDC_STATIC_GROUP_BOX:
+		case IDC_RADIO_USER:
+		case IDC_RADIO_ADMIN:
+		case IDC_STATIC_ID:
+		case IDC_STATIC_PW:
+			pDC->SetBkMode(TRANSPARENT);
+			return reinterpret_cast<HBRUSH>(::GetStockObject(NULL_BRUSH));
+	}
 
 	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
 	return hbr;
+}
+
+
+BOOL CBookManagementDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		switch (pMsg->wParam)
+		{
+			case VK_RETURN:
+			case VK_ESCAPE:
+				return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }

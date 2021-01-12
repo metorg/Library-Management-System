@@ -223,11 +223,11 @@ void AdminBookDlg::InsertDB(CString title, CString author, CString publisher, CS
 }
 
 
-void AdminBookDlg::EditDB(CString id, CString title, CString author, CString publisher, CString isbn, CString quantity)
+void AdminBookDlg::EditDB(CString title, CString author, CString publisher, CString isbn, CString quantity)
 {
 	CString query;
-	query.Format(_T("UPDATE book SET title='%s', author='%s', publisher='%s', isbn='%s', quantity=%s WHERE id=%s"), \
-		title, author, publisher, isbn, quantity, id);
+	query.Format(_T("UPDATE book SET title='%s', author='%s', publisher='%s', quantity=%s WHERE isbn='%s'"), \
+		title, author, publisher, quantity, isbn);
 
 	if (mysql_query(&Connect, (CStringA)query))
 	{
@@ -242,6 +242,8 @@ void AdminBookDlg::DeleteDB()
 	POSITION pos = m_list.GetFirstSelectedItemPosition();
 	vector<int> id;
 	int nSelected;
+
+	id.clear();
 	
 	if (uSelectedCount <= 0)
 	{

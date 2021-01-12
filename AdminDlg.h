@@ -22,6 +22,7 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
+	HICON m_hIcon;
 
 	DECLARE_MESSAGE_MAP()
 public:

@@ -17,7 +17,7 @@ IMPLEMENT_DYNAMIC(AdminDlg, CDialogEx)
 AdminDlg::AdminDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_ADMIN, pParent)
 {
-
+	
 }
 
 AdminDlg::~AdminDlg()
@@ -43,7 +43,13 @@ BOOL AdminDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	m_Tab.InsertItem(0, _T("책 관리"));
+	m_hIcon = AfxGetApp()->LoadIcon(MAKEINTRESOURCE(IDI_ICON_BOOK)); // favicon
+	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
+	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+
+	SetWindowText(_T("관리자님 환영합니다"));
+
+	m_Tab.InsertItem(0, _T("도서 관리"));
 	m_Tab.InsertItem(1, _T("회원 관리"));
 
 	m_Tab.SetCurSel(0);

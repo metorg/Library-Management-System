@@ -6,8 +6,6 @@
 #include "AddEditDlg.h"
 #include "afxdialogex.h"
 
-CString id;
-
 
 // AddEditDlg 대화 상자
 
@@ -40,7 +38,10 @@ BOOL AddEditDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	m_hIcon = AfxGetApp()->LoadIcon(MAKEINTRESOURCE(IDI_ICON_BOOK)); // favicon
+	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
+	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+
 	CString title;
 	CString author;
 	CString publisher;
@@ -49,6 +50,8 @@ BOOL AddEditDlg::OnInitDialog()
 
 	if (((AdminBookDlg *)pParent)->editmode == TRUE)
 	{
+		SetWindowText(_T("도서 수정"));
+
 		UINT uSelectedCount = ((AdminBookDlg *)pParent)->m_list.GetSelectedCount();
 		POSITION pos = ((AdminBookDlg *)pParent)->m_list.GetFirstSelectedItemPosition();
 		int nSelected = ((AdminBookDlg *)pParent)->m_list.GetNextSelectedItem(pos);
@@ -66,18 +69,23 @@ BOOL AddEditDlg::OnInitDialog()
 			return TRUE;
 		}
 
-		id = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 0);
-		title = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 1);
-		author = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 2);
-		publisher = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 3);
-		isbn = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 4);
-		quantity = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 5);
+		title = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 0);
+		author = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 1);
+		publisher = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 2);
+		isbn = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 3);
+		quantity = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 4);
 
 		SetDlgItemText(IDC_EDIT_TITLE, title);
 		SetDlgItemText(IDC_EDIT_AUTHOR, author);
 		SetDlgItemText(IDC_EDIT_PUBLISHER, publisher);
 		SetDlgItemText(IDC_EDIT_ISBN, isbn);
 		SetDlgItemText(IDC_EDIT_QUANTITY, quantity);
+
+		GetDlgItem(IDC_EDIT_ISBN)->SendMessage(EM_SETREADONLY, 1, 0);
+	}
+	else
+	{
+		SetWindowText(_T("도서 추가"));
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -99,8 +107,15 @@ void AddEditDlg::OnButtonAddEditOk()
 	GetDlgItemText(IDC_EDIT_ISBN, isbn);
 	GetDlgItemText(IDC_EDIT_QUANTITY, quantity);
 
+	// 빈 칸이 있는 경우
+	if (title.IsEmpty() && author.IsEmpty() && publisher.IsEmpty() && isbn.IsEmpty() && quantity.IsEmpty())
+	{
+		MessageBox(TEXT("모든 항목을 입력해주세요."), TEXT("시스템"), MB_OK);
+		return;
+	}
+
 	if (((AdminBookDlg *)pParent)->editmode == TRUE)
-		((AdminBookDlg *)pParent)->EditDB(id, title, author, publisher, isbn, quantity);
+		((AdminBookDlg *)pParent)->EditDB(title, author, publisher, isbn, quantity);
 	else
 		((AdminBookDlg *)pParent)->InsertDB(title, author, publisher, isbn, quantity);
 

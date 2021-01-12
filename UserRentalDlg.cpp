@@ -188,6 +188,41 @@ BOOLEAN UserRentalDlg::OverlapDB(CString isbn) //대여중복책검사
 	return false;
 }
 
+BOOLEAN UserRentalDlg::LimitDB() //책권수 제한
+{
+	CString query;
+	query.Format(_T("SELECT * FROM user where id = '%s' ;"), id_static);
+	int seq = 0;
+	CString seq_string;
+	seq_string.Format(_T("%d"), seq);
+
+	if (mysql_query(&Connect, (CStringA)query))
+	{
+		TRACE("Connection error %d: %s\n", mysql_errno(&Connect), mysql_error(&Connect));
+		return false;
+	}
+
+	if ((Sql_Result = mysql_store_result(&Connect)) == NULL)
+	{
+		//쿼리저장
+		TRACE("Connection error %d: %s\n", mysql_errno(&Connect), mysql_error(&Connect));
+		return false;
+	}
+
+
+	while ((Sql_Row = mysql_fetch_row(Sql_Result)) != NULL)
+	{
+		int bookNum;
+		CString str = (CString)Sql_Row[4];
+		bookNum = _tstoi(str);
+		if (bookNum >= 3) // 3권이 넘어갈시
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 
 void UserRentalDlg::OnPaint()
@@ -310,6 +345,11 @@ void UserRentalDlg::OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult) //리스�
 	isbn = m_BookList.GetItemText(idx, 3);
 	quantity = m_BookList.GetItemText(idx, 4);
 
+	if (m_BookList.GetItemText(idx, 0) == "")
+	{
+		return;
+	}
+
 	int num; //권수
 	num = _tstoi(quantity);
 
@@ -318,6 +358,7 @@ void UserRentalDlg::OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult) //리스�
 		MessageBox(_T(title + "책은 남은 재고가 없습니다"));
 		return;
 	}
+
 
 	CTime cTime = CTime::GetCurrentTime(); // 현재 시스템으로부터 날짜 및 시간을 얻어 온다.
 
@@ -334,7 +375,13 @@ void UserRentalDlg::OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult) //리스�
 		//OK Action
 		if (OverlapDB(isbn)) //대여 중복 검사
 		{
-			MessageBox(TEXT("이미 대여한 책 입니다."), TEXT("반납후대여해주세요"), MB_OK);
+			MessageBox(TEXT("이미 대여한 책 입니다."), TEXT("중복 대여"), MB_OK);
+			return;
+		}
+
+		if (LimitDB()) //대여 3권 넘어갈시
+		{
+			MessageBox(TEXT("북킹 도서관은 3권까지만 대여 가능합니다. "), TEXT("반납후대여해주세요"), MB_OK);
 			return;
 		}
 
@@ -357,8 +404,17 @@ void UserRentalDlg::OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult) //리스�
 			MessageBox(_T("Update Error"));
 		}
 
-		PrintDB("SELECT * FROM book;");
 
+		CString query3; //회원 대여 권수 증가
+		query3.Format(_T("UPDATE user SET book = book + 1 WHERE id='%s'"), \
+			user_id);
+		if (mysql_query(&Connect, (CStringA)query3))
+		{
+			MessageBox(_T("Update Error"));
+		}
+
+
+		PrintDB("SELECT * FROM book;");
 	}
 	else if (IDNO)
 

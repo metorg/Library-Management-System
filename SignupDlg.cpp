@@ -38,7 +38,6 @@ void SignupDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_PW, m_strPW);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_CPW, m_strCPW);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_NAME, m_strName);
-	//  DDX_Text(pDX, IDC_EDIT_SIGNUP_PHONE, m_strTel);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_PHONE, m_strTel);
 }
 
@@ -54,7 +53,10 @@ BOOL SignupDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	m_hIcon = AfxGetApp()->LoadIcon(MAKEINTRESOURCE(IDI_ICON_BOOK)); // favicon
+	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
+	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+
 	if (parentTitle.Compare("관리자") == 1) // 열린 창이 관리자가 아니면(관리자면 -1)
 		return TRUE;
 
@@ -65,13 +67,15 @@ BOOL SignupDlg::OnInitDialog()
 
 	if (((AdminUserDlg *)pParent)->editmode)
 	{
+		SetWindowText(_T("회원 수정"));
+
 		UINT uSelectedCount = ((AdminUserDlg *)pParent)->m_list.GetSelectedCount();
 		POSITION pos = ((AdminUserDlg *)pParent)->m_list.GetFirstSelectedItemPosition();
 		int nSelected = ((AdminUserDlg *)pParent)->m_list.GetNextSelectedItem(pos);
 
 		if (uSelectedCount <= 0)
 		{
-			MessageBox(_T("선택된 책이 없습니다."));
+			MessageBox(_T("선택된 회원이 없습니다."));
 			this->EndDialog(IDNO);
 			return TRUE;
 		}
@@ -95,6 +99,10 @@ BOOL SignupDlg::OnInitDialog()
 
 		GetDlgItem(IDC_EDIT_SIGNUP_ID)->SendMessage(EM_SETREADONLY, 1, 0);
 		GetDlgItem(IDC_EDIT_SIGNUP_NAME)->SendMessage(EM_SETREADONLY, 1, 0);
+	}
+	else
+	{
+		SetWindowText(_T("회원가입"));
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -144,7 +152,7 @@ void SignupDlg::OnButtonSignupOk()
 				return;
 			}
 		}
-		query.Format(_T("INSERT INTO user (id, pw, name, tel, book) VALUES ('%s', '%s', '%s', '%s', 0)"), m_strID, m_strPW, m_strName, m_strTel);
+		query.Format(_T("INSERT INTO user (id, pw, name, tel, book, overdue) VALUES ('%s', '%s', '%s', '%s', 0, 0)"), m_strID, m_strPW, m_strName, m_strTel);
 	}
 	mysql_query(&Connect, (CStringA)query);
 

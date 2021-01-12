@@ -50,7 +50,7 @@ public:
 	void ConnectDB();
 	void PrintDB();
 	void InsertDB(CString title, CString author, CString publisher, CString isbn, CString quantity);
-	void EditDB(CString id, CString title, CString author, CString publisher, CString isbn, CString quantity);
+	void EditDB(CString title, CString author, CString publisher, CString isbn, CString quantity);
 	void DeleteDB();
 	BOOL editmode;
 	afx_msg void OnContextMenu(CWnd * /*pWnd*/, CPoint point);
