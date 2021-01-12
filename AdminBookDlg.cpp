@@ -200,6 +200,19 @@ void AdminBookDlg::PrintDB()
 void AdminBookDlg::InsertDB(CString title, CString author, CString publisher, CString isbn, CString quantity)
 {
 	CString query;
+
+	query.Format(_T("SELECT * FROM book"));
+	mysql_query(&Connect, (CStringA)query);
+	Sql_Result = mysql_store_result(&Connect);
+	while ((Sql_Row = mysql_fetch_row(Sql_Result)) != NULL)
+	{
+		if (isbn == Sql_Row[3])
+		{
+			MessageBox("중복된 책이 존재합니다.");
+			return;
+		}
+	}
+
 	query.Format(_T("INSERT INTO book(title, author, publisher, isbn, quantity) \
 					values('%s', '%s', '%s', '%s', '%s')"), title, author, publisher, isbn, quantity);
 	
@@ -245,7 +258,7 @@ void AdminBookDlg::DeleteDB()
 	for (int i = (int)id.size() - 1; i >= 0; --i)
 	{
 		CString query;
-		query.Format(_T("DELETE FROM book WHERE isbn = '%s'"), m_list.GetItemText(id[3], 0));
+		query.Format(_T("DELETE FROM book WHERE isbn = '%s'"), m_list.GetItemText(id[i], 3));
 		if (mysql_query(&Connect, (CStringA)query))
 		{
 			MessageBox(_T("Delete Error"));
