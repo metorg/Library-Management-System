@@ -7,7 +7,7 @@
 #ifndef PCH_H
 #define PCH_H
 
-// #pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+ //#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
@@ -27,5 +27,6 @@
 extern MYSQL_ROW Sql_Row; // mysql 의 각행의 인덱스값들 불러온다.
 extern MYSQL_RES *Sql_Result; // mysql의 결과
 extern MYSQL Connect; // mysql의 연결을 담당
+extern CString id_static;//로그인 아이디값
 
 #endif //PCH_H

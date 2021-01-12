@@ -36,6 +36,54 @@ END_MESSAGE_MAP()
 
 // AddEditDlg 메시지 처리기
 
+BOOL AddEditDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	CString title;
+	CString author;
+	CString publisher;
+	CString isbn;
+	CString quantity;
+
+	if (((AdminBookDlg *)pParent)->editmode == TRUE)
+	{
+		UINT uSelectedCount = ((AdminBookDlg *)pParent)->m_list.GetSelectedCount();
+		POSITION pos = ((AdminBookDlg *)pParent)->m_list.GetFirstSelectedItemPosition();
+		int nSelected = ((AdminBookDlg *)pParent)->m_list.GetNextSelectedItem(pos);
+
+		if (uSelectedCount <= 0)
+		{
+			MessageBox(_T("선택된 책이 없습니다."));
+			this->EndDialog(IDNO);
+			return TRUE;
+		}
+		else if (uSelectedCount > 1)
+		{
+			MessageBox(_T("한 개만 선택해주세요."));
+			this->EndDialog(IDNO);
+			return TRUE;
+		}
+
+		id = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 0);
+		title = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 1);
+		author = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 2);
+		publisher = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 3);
+		isbn = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 4);
+		quantity = ((AdminBookDlg *)pParent)->m_list.GetItemText(nSelected, 5);
+
+		SetDlgItemText(IDC_EDIT_TITLE, title);
+		SetDlgItemText(IDC_EDIT_AUTHOR, author);
+		SetDlgItemText(IDC_EDIT_PUBLISHER, publisher);
+		SetDlgItemText(IDC_EDIT_ISBN, isbn);
+		SetDlgItemText(IDC_EDIT_QUANTITY, quantity);
+	}
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
+
 
 void AddEditDlg::OnButtonAddEditOk()
 {
@@ -59,44 +107,4 @@ void AddEditDlg::OnButtonAddEditOk()
 	((AdminBookDlg *)pParent)->PrintDB();
 
 	this->EndDialog(IDOK);
-}
-
-
-BOOL AddEditDlg::OnInitDialog()
-{
-	CDialogEx::OnInitDialog();
-
-	// TODO:  여기에 추가 초기화 작업을 추가합니다.
-	CString title;
-	CString author;
-	CString publisher;
-	CString isbn;
-	CString quantity;
-
-	if (((AdminBookDlg *)pParent)->editmode == TRUE)
-	{
-		int nCount = ((AdminBookDlg *)pParent)->m_list.GetItemCount();
-
-		for (int i = 0; i < nCount; i++)
-		{
-			if (((AdminBookDlg *)pParent)->m_list.GetCheck(i))
-			{
-				id = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 0);
-				title = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 1);
-				author = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 2);
-				publisher = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 3);
-				isbn = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 4);
-				quantity = ((AdminBookDlg *)pParent)->m_list.GetItemText(i, 5);
-				break;
-			}
-		}
-		SetDlgItemText(IDC_EDIT_TITLE, title);
-		SetDlgItemText(IDC_EDIT_AUTHOR, author);
-		SetDlgItemText(IDC_EDIT_PUBLISHER, publisher);
-		SetDlgItemText(IDC_EDIT_ISBN, isbn);
-		SetDlgItemText(IDC_EDIT_QUANTITY, quantity);
-	}
-
-	return TRUE;  // return TRUE unless you set the focus to a control
-				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }

@@ -57,7 +57,7 @@ CBookManagementDlg::CBookManagementDlg(CWnd* pParent /*=nullptr*/)
 	, m_strID(_T(""))
 	, m_strPW(_T(""))
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON_BOOK); // favicon
 }
 
 void CBookManagementDlg::DoDataExchange(CDataExchange* pDX)
@@ -66,6 +66,7 @@ void CBookManagementDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_ID, m_strID);
 	DDX_Text(pDX, IDC_EDIT_PW, m_strPW);
 	DDX_Control(pDX, IDC_RADIO_USER, m_rUser);
+	DDX_Control(pDX, IDC_STATIC_BACKGROUND, m_imgBg);
 }
 
 BEGIN_MESSAGE_MAP(CBookManagementDlg, CDialogEx)
@@ -76,6 +77,7 @@ BEGIN_MESSAGE_MAP(CBookManagementDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADMIN, &CBookManagementDlg::OnButtonAdmin)
 	ON_BN_CLICKED(IDC_BUTTON_SIGNUP, &CBookManagementDlg::OnButtonSignup)
 	ON_BN_CLICKED(IDC_BUTTON_LOGIN, &CBookManagementDlg::OnButtonLogin)
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -112,6 +114,12 @@ BOOL CBookManagementDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_rUser.SetCheck(TRUE);
+
+	HBITMAP hBit = LoadBitmap(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_BACKGROUND));
+	m_imgBg.SetBitmap(hBit);
+	CRect rt;
+	GetClientRect(&rt);
+	m_imgBg.SetWindowPos(NULL, 0, 0, rt.Width(), rt.Height(), SWP_SHOWWINDOW);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -191,7 +199,7 @@ void CBookManagementDlg::OnButtonAdmin()
 void CBookManagementDlg::OnButtonSignup()
 {
 	// 방법 1
-	SignupDlg signupDlg;
+	SignupDlg signupDlg(this);
 	signupDlg.DoModal();
 }
 
@@ -211,6 +219,7 @@ void CBookManagementDlg::OnButtonLogin()
 	// 회원으로 로그인
 	else if (m_rUser.GetCheck())
 	{
+		id_static = (CStringA)m_strID;
 		mysql_init(&Connect);
 		mysql_real_connect(&Connect, MY_IP, DB_USER, DB_PASS, DB_NAME, 3306, (char *)NULL, 0);
 		mysql_query(&Connect, "set names euckr");
@@ -243,4 +252,29 @@ void CBookManagementDlg::OnButtonLogin()
 			MessageBox(TEXT("잘못된 접근입니다."), TEXT("경고"), MB_OK);
 		}
 	}
+}
+
+
+HBRUSH CBookManagementDlg::OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  여기서 DC의 특성을 변경합니다.
+	/*if (IDC_STATIC_GROUP_BOX == pWnd->GetDlgCtrlID())
+	{
+		CPoint ul(0, 6);
+		CRect rect;
+		pWnd->GetWindowRect(&rect);
+		CPoint lr((rect.right - rect.left - 2), (rect.bottom - rect.top - 2));
+		pDC->FillSolidRect(CRect(ul, lr), RGB(255, 255, 255));
+		pWnd->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	}
+	else
+	{
+		pDC->SetBkMode(TRANSPARENT);
+		return reinterpret_cast<HBRUSH>(::GetStockObject(NULL_BRUSH));
+	}*/
+
+	// TODO:  기본값이 적당하지 않으면 다른 브러시를 반환합니다.
+	return hbr;
 }

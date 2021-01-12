@@ -34,6 +34,10 @@ BEGIN_MESSAGE_MAP(AdminBookDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_BOOK_DELETE, &AdminBookDlg::OnButtonBookDelete)
 	ON_NOTIFY(HDN_ITEMCLICKA, 0, AdminBookDlg::OnHdnItemClickList)
 	ON_NOTIFY(HDN_ITEMCLICKW, 0, AdminBookDlg::OnHdnItemClickList)
+	ON_COMMAND(ID_MENU_ADD, &AdminBookDlg::OnButtonBookAdd)
+	ON_COMMAND(ID_MENU_EDIT, &AdminBookDlg::OnButtonBookEdit)
+	ON_COMMAND(ID_MENU_DELETE, &AdminBookDlg::OnButtonBookDelete)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -45,20 +49,22 @@ BOOL AdminBookDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
-	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES | LVS_EX_GRIDLINES);
-	m_list.InsertColumn(0, _T("번호"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(1, _T("도서 제목"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(2, _T("저자"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(3, _T("출판사"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(4, _T("ISBN"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(5, _T("수량"), LVCFMT_LEFT, 100, -1);
+	CRect rect;
+	m_list.GetClientRect(rect);
+
+	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+	m_list.InsertColumn(0, _T("도서 제목"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(1, _T("저자"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(2, _T("출판사"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(3, _T("ISBN"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(4, _T("수량"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
 	//칼럼 추가 인덱스, 칼람명, 정렬방향, 칼럼길이, 서브아이템 갯수
 
 	ConnectDB();
 	PrintDB();
 
-	for (int i = 0; i < m_list.GetHeaderCtrl()->GetItemCount(); ++i)
-		m_list.SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER);
+	/*for (int i = 0; i < m_list.GetHeaderCtrl()->GetItemCount(); ++i)
+		m_list.SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER);*/
 
 	//LVCOLUMN Column;
 	//Column.mask = LVCF_FMT;
@@ -67,6 +73,22 @@ BOOL AdminBookDlg::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
+
+
+BOOL AdminBookDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		switch (pMsg->wParam)
+		{
+			case VK_RETURN:
+			case VK_ESCAPE:
+				return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
 
@@ -90,6 +112,21 @@ void AdminBookDlg::OnButtonBookDelete()
 {
 	DeleteDB();
 	PrintDB();
+}
+
+
+void AdminBookDlg::OnContextMenu(CWnd * /*pWnd*/, CPoint point)
+{
+	CMenu menu;
+
+	// 팝업 메뉴를 생성한다.
+	menu.CreatePopupMenu();
+	menu.AppendMenu(MF_STRING, ID_MENU_ADD, _T("추가"));
+	menu.AppendMenu(MF_STRING, ID_MENU_EDIT, _T("수정"));
+	menu.AppendMenu(MF_STRING, ID_MENU_DELETE, _T("삭제"));
+
+	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+	menu.DestroyMenu();
 }
 
 
@@ -135,27 +172,24 @@ void AdminBookDlg::PrintDB()
 
 	while ((Sql_Row = mysql_fetch_row(Sql_Result)) != NULL)
 	{
-		CString id;
 		CString title;
 		CString writer;
 		CString publisher;
 		CString isbn;
 		CString quantity;
 
-		id += Sql_Row[0];
-		title += Sql_Row[1];
-		writer += Sql_Row[2];
-		publisher += Sql_Row[3];
-		isbn += Sql_Row[4];
-		quantity += Sql_Row[5];
+		title += Sql_Row[0];
+		writer += Sql_Row[1];
+		publisher += Sql_Row[2];
+		isbn += Sql_Row[3];
+		quantity += Sql_Row[4];
 
 		m_list.InsertItem(seq, _T(""));
-		m_list.SetItem(seq, 0, LVIF_TEXT, id, 0, 0, 0, NULL);
-		m_list.SetItem(seq, 1, LVIF_TEXT, title, 0, 0, 0, NULL);
-		m_list.SetItem(seq, 2, LVIF_TEXT, writer, 0, 0, 0, NULL);
-		m_list.SetItem(seq, 3, LVIF_TEXT, publisher, 0, 0, 0, NULL);
-		m_list.SetItem(seq, 4, LVIF_TEXT, isbn, 0, 0, 0, NULL);
-		m_list.SetItem(seq, 5, LVIF_TEXT, quantity, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 0, LVIF_TEXT, title, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 1, LVIF_TEXT, writer, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 2, LVIF_TEXT, publisher, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 3, LVIF_TEXT, isbn, 0, 0, 0, NULL);
+		m_list.SetItem(seq, 4, LVIF_TEXT, quantity, 0, 0, 0, NULL);
 
 		seq++;
 		seq_string.Format(_T("%d"), seq);
@@ -191,27 +225,31 @@ void AdminBookDlg::EditDB(CString id, CString title, CString author, CString pub
 
 void AdminBookDlg::DeleteDB()
 {
-	int nCount = m_list.GetItemCount();
-	std::vector<CString> id;
-
-	for (int i = 0; i < nCount; i++)
+	UINT uSelectedCount = m_list.GetSelectedCount();
+	POSITION pos = m_list.GetFirstSelectedItemPosition();
+	vector<int> id;
+	int nSelected;
+	
+	if (uSelectedCount <= 0)
 	{
-		if (m_list.GetCheck(i))
-		{
-			id.push_back(m_list.GetItemText(i, 0));
-		}
+		MessageBox(_T("선택된 책이 없습니다."));
+		return;
 	}
 
-	while (!id.empty())
+	while (pos)
+	{
+		nSelected = m_list.GetNextSelectedItem(pos);
+		id.push_back(nSelected);
+	}
+
+	for (int i = (int)id.size() - 1; i >= 0; --i)
 	{
 		CString query;
-		query.Format(_T("DELETE FROM book WHERE id = %s"), id.back());
-
+		query.Format(_T("DELETE FROM book WHERE isbn = '%s'"), m_list.GetItemText(id[3], 0));
 		if (mysql_query(&Connect, (CStringA)query))
 		{
 			MessageBox(_T("Delete Error"));
 		}
-		id.pop_back();
 	}
 }
 

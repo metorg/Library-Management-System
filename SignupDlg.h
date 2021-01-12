@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "AdminUserDlg.h"
 
 // SignupDlg 대화 상자
 
@@ -25,6 +26,11 @@ public:
 	CString m_strPW;
 	CString m_strCPW;
 	CString m_strName;
-	CString m_strTel;
+//	CString m_strTel;
 	afx_msg void OnButtonSignupOk();
+	virtual BOOL OnInitDialog();
+	CWnd *pParent;
+	CString parentTitle;
+	CString m_strTel;
+	afx_msg void OnButtonSignupCancle();
 };

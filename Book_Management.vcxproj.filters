@@ -104,7 +104,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\Book_Management.ico">
+    <Image Include="res\book.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\BACKGROUND.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

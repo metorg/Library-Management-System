@@ -42,4 +42,6 @@ public:
 	CString m_strID;
 	CString m_strPW;
 	CButton m_rUser;
+	CStatic m_imgBg;
+	afx_msg HBRUSH OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor);
 };

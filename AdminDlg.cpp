@@ -31,12 +31,12 @@ void AdminDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
+// AdminDlg 메시지 처리기
+
+
 BEGIN_MESSAGE_MAP(AdminDlg, CDialogEx)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_ADMIN, &AdminDlg::OnTcnSelchangeTabAdmin)
 END_MESSAGE_MAP()
-
-
-// AdminDlg 메시지 처리기
 
 
 BOOL AdminDlg::OnInitDialog()
@@ -53,16 +53,32 @@ BOOL AdminDlg::OnInitDialog()
 
 	pAdminBookDlg = new AdminBookDlg;
 	pAdminBookDlg->Create(IDD_ADMIN_BOOK, &m_Tab);
-	pAdminBookDlg->MoveWindow(0, 20, rect.Width() + 1, rect.Height() - 5);
+	pAdminBookDlg->MoveWindow(0, 20, rect.Width(), rect.Height() - 20);
 	pAdminBookDlg->ShowWindow(SW_SHOW);
 
 	pAdminUserDlg = new AdminUserDlg;
 	pAdminUserDlg->Create(IDD_ADMIN_USER, &m_Tab);
-	pAdminUserDlg->MoveWindow(0, 20, rect.Width() + 1, rect.Height() - 5);
+	pAdminUserDlg->MoveWindow(0, 20, rect.Width(), rect.Height() - 20);
 	pAdminUserDlg->ShowWindow(SW_HIDE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
+
+
+BOOL AdminDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		switch (pMsg->wParam)
+		{
+			case VK_RETURN:
+			case VK_ESCAPE:
+				return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
 

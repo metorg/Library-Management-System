@@ -23,7 +23,8 @@ SignupDlg::SignupDlg(CWnd* pParent /*=nullptr*/)
 	, m_strName(_T(""))
 	, m_strTel(_T(""))
 {
-
+	this->pParent = pParent;
+	pParent->GetWindowText(parentTitle);
 }
 
 SignupDlg::~SignupDlg()
@@ -37,16 +38,68 @@ void SignupDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_PW, m_strPW);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_CPW, m_strCPW);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_NAME, m_strName);
+	//  DDX_Text(pDX, IDC_EDIT_SIGNUP_PHONE, m_strTel);
 	DDX_Text(pDX, IDC_EDIT_SIGNUP_PHONE, m_strTel);
 }
 
 
 BEGIN_MESSAGE_MAP(SignupDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_SIGNUP_OK, &SignupDlg::OnButtonSignupOk)
+	ON_BN_CLICKED(IDC_BUTTON_SIGNUP_CANCLE, &SignupDlg::OnButtonSignupCancle)
 END_MESSAGE_MAP()
 
 
 // SignupDlg 메시지 처리기
+BOOL SignupDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// TODO:  여기에 추가 초기화 작업을 추가합니다.
+	if (parentTitle.Compare("관리자") == 1) // 열린 창이 관리자가 아니면(관리자면 -1)
+		return TRUE;
+
+	CString id;
+	CString pw;
+	CString name;
+	CString tel;
+
+	if (((AdminUserDlg *)pParent)->editmode)
+	{
+		UINT uSelectedCount = ((AdminUserDlg *)pParent)->m_list.GetSelectedCount();
+		POSITION pos = ((AdminUserDlg *)pParent)->m_list.GetFirstSelectedItemPosition();
+		int nSelected = ((AdminUserDlg *)pParent)->m_list.GetNextSelectedItem(pos);
+
+		if (uSelectedCount <= 0)
+		{
+			MessageBox(_T("선택된 책이 없습니다."));
+			this->EndDialog(IDNO);
+			return TRUE;
+		}
+		else if (uSelectedCount > 1)
+		{
+			MessageBox(_T("한 개만 선택해주세요."));
+			this->EndDialog(IDNO);
+			return TRUE;
+		}
+
+		id = ((AdminUserDlg *)pParent)->m_list.GetItemText(nSelected, 0);
+		pw = ((AdminUserDlg *)pParent)->m_list.GetItemText(nSelected, 1);
+		name = ((AdminUserDlg *)pParent)->m_list.GetItemText(nSelected, 2);
+		tel = ((AdminUserDlg *)pParent)->m_list.GetItemText(nSelected, 3);
+
+		SetDlgItemText(IDC_EDIT_SIGNUP_ID, id);
+		SetDlgItemText(IDC_EDIT_SIGNUP_PW, pw);
+		SetDlgItemText(IDC_EDIT_SIGNUP_CPW, pw);
+		SetDlgItemText(IDC_EDIT_SIGNUP_NAME, name);
+		SetDlgItemText(IDC_EDIT_SIGNUP_PHONE, tel);
+
+		GetDlgItem(IDC_EDIT_SIGNUP_ID)->SendMessage(EM_SETREADONLY, 1, 0);
+		GetDlgItem(IDC_EDIT_SIGNUP_NAME)->SendMessage(EM_SETREADONLY, 1, 0);
+	}
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
 
 
 void SignupDlg::OnButtonSignupOk()
@@ -71,27 +124,38 @@ void SignupDlg::OnButtonSignupOk()
 	mysql_query(&Connect, "set names euckr");
 
 	CString query;
-	query.Format(_T("SELECT * FROM user WHERE id='%s'"), m_strID);
-	mysql_query(&Connect, (CStringA)query);
 
-	Sql_Result = mysql_store_result(&Connect);
-
-	while ((Sql_Row = mysql_fetch_row(Sql_Result)) != NULL)
+	if (parentTitle.Compare("관리자") == -1 && ((AdminUserDlg *)pParent)->editmode)
 	{
-		if (((CString)Sql_Row[0]).Compare(m_strID) == 0)
-		{
-			MessageBox(TEXT("이미 존재하는 아이디입니다."), TEXT("회원가입 실패"), MB_OK);
-			return;
-		}
+		query.Format(_T("UPDATE user SET pw='%s', tel='%s' WHERE id='%s'"), m_strPW, m_strTel, m_strID);
 	}
+	else
+	{
+		query.Format(_T("SELECT * FROM user WHERE id='%s'"), m_strID);
+		mysql_query(&Connect, (CStringA)query);
 
-	query.Format(_T("INSERT INTO user (id, pw, name, tel, book) VALUES ('%s', '%s', '%s', '%s', 0)"), m_strID, m_strPW, m_strName, m_strTel);
+		Sql_Result = mysql_store_result(&Connect);
+
+		while ((Sql_Row = mysql_fetch_row(Sql_Result)) != NULL)
+		{
+			if (((CString)Sql_Row[0]).Compare(m_strID) == 0)
+			{
+				MessageBox(TEXT("이미 존재하는 아이디입니다."), TEXT("회원가입 실패"), MB_OK);
+				return;
+			}
+		}
+		query.Format(_T("INSERT INTO user (id, pw, name, tel, book) VALUES ('%s', '%s', '%s', '%s', 0)"), m_strID, m_strPW, m_strName, m_strTel);
+	}
 	mysql_query(&Connect, (CStringA)query);
 
-	Sql_Result = mysql_store_result(&Connect);
-
-	MessageBox(query, TEXT("회원가입 성공"), MB_OK);
+	if (parentTitle.Compare("관리자") == -1)
+		((AdminUserDlg *)pParent)->PrintDB();
 
 	mysql_close(&Connect);
-	OnOK();
+	this->EndDialog(IDOK);
+}
+
+void SignupDlg::OnButtonSignupCancle()
+{
+	this->EndDialog(IDNO);
 }

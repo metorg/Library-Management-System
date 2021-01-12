@@ -28,4 +28,5 @@ public:
 	CTabCtrl m_Tab;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnTcnSelchangeTabAdmin(NMHDR *pNMHDR, LRESULT *pResult);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 };

@@ -2,6 +2,7 @@
 
 #include "AddEditDlg.h"
 #include <vector>
+using namespace std;
 
 
 // AdminBookDlg 대화 상자
@@ -26,6 +27,14 @@ public:
 		bool bSortDirect;
 		CListCtrl *pList;
 	};
+
+	enum
+	{
+		ID_MENU_BASE = 2000,
+		ID_MENU_ADD = ID_MENU_BASE,
+		ID_MENU_EDIT,
+		ID_MENU_DELETE
+	};
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
 
@@ -44,4 +53,6 @@ public:
 	void EditDB(CString id, CString title, CString author, CString publisher, CString isbn, CString quantity);
 	void DeleteDB();
 	BOOL editmode;
+	afx_msg void OnContextMenu(CWnd * /*pWnd*/, CPoint point);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 };

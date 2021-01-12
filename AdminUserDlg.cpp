@@ -29,8 +29,15 @@ void AdminUserDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(AdminUserDlg, CDialogEx)
+	ON_BN_CLICKED(IDC_BUTTON_USER_ADD, &AdminUserDlg::OnButtonUserAdd)
+	ON_BN_CLICKED(IDC_BUTTON_USER_EDIT, &AdminUserDlg::OnButtonUserEdit)
+	ON_BN_CLICKED(IDC_BUTTON_USER_DELETE, &AdminUserDlg::OnButtonUserDelete)
 	ON_NOTIFY(HDN_ITEMCLICKA, 0, AdminUserDlg::OnHdnItemClickList)
 	ON_NOTIFY(HDN_ITEMCLICKW, 0, AdminUserDlg::OnHdnItemClickList)
+	ON_COMMAND(ID_MENU_ADD, &AdminUserDlg::OnButtonUserAdd)
+	ON_COMMAND(ID_MENU_EDIT, &AdminUserDlg::OnButtonUserEdit)
+	ON_COMMAND(ID_MENU_DELETE, &AdminUserDlg::OnButtonUserDelete)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -42,21 +49,78 @@ BOOL AdminUserDlg::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  여기에 추가 초기화 작업을 추가합니다.
-	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES | LVS_EX_GRIDLINES);
-	m_list.InsertColumn(0, _T("ID"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(1, _T("PW"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(2, _T("이름"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(3, _T("연락처"), LVCFMT_LEFT, 100, -1);
-	m_list.InsertColumn(4, _T("대여 권 수"), LVCFMT_LEFT, 100, -1);
+	CRect rect;
+	m_list.GetClientRect(rect);
+
+	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+	m_list.InsertColumn(0, _T("ID"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(1, _T("PW"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(2, _T("이름"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(3, _T("연락처"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
+	m_list.InsertColumn(4, _T("대여 권 수"), LVCFMT_LEFT, int(rect.Width() * 0.2), -1);
 	//칼럼 추가 인덱스, 칼람명, 정렬방향, 칼럼길이, 서브아이템 갯수
 
 	PrintDB();
 
-	for (int i = 0; i < m_list.GetHeaderCtrl()->GetItemCount(); ++i)
-		m_list.SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER);
+	/*for (int i = 0; i < m_list.GetHeaderCtrl()->GetItemCount(); ++i)
+		m_list.SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER);*/
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
+
+
+BOOL AdminUserDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		switch (pMsg->wParam)
+		{
+			case VK_RETURN:
+			case VK_ESCAPE:
+				return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+
+void AdminUserDlg::OnButtonUserAdd()
+{
+	editmode = FALSE;
+	SignupDlg signupDlg(this);
+	signupDlg.DoModal();
+}
+
+
+void AdminUserDlg::OnButtonUserEdit()
+{
+	editmode = TRUE;
+	SignupDlg signupDlg(this);
+	signupDlg.DoModal();
+}
+
+
+void AdminUserDlg::OnButtonUserDelete()
+{
+	DeleteDB();
+	PrintDB();
+}
+
+
+void AdminUserDlg::OnContextMenu(CWnd * /*pWnd*/, CPoint point)
+{
+	CMenu menu;
+
+	// 팝업 메뉴를 생성한다.
+	menu.CreatePopupMenu();
+	menu.AppendMenu(MF_STRING, ID_MENU_ADD, _T("추가"));
+	menu.AppendMenu(MF_STRING, ID_MENU_EDIT, _T("수정"));
+	menu.AppendMenu(MF_STRING, ID_MENU_DELETE, _T("삭제"));
+
+	menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, this);
+	menu.DestroyMenu();
 }
 
 
@@ -125,6 +189,38 @@ void AdminUserDlg::PrintDB()
 		seq_string.Format(_T("%d"), seq);
 	}
 }
+
+
+void AdminUserDlg::DeleteDB()
+{
+	UINT uSelectedCount = m_list.GetSelectedCount();
+	POSITION pos = m_list.GetFirstSelectedItemPosition();
+	vector<int> id;
+	int nSelected;
+
+	if (uSelectedCount <= 0)
+	{
+		MessageBox(_T("선택된 책이 없습니다."));
+		return;
+	}
+
+	while (pos)
+	{
+		nSelected = m_list.GetNextSelectedItem(pos);
+		id.push_back(nSelected);
+	}
+
+	for (int i = (int)id.size() - 1; i >= 0; --i)
+	{
+		CString query;
+		query.Format(_T("DELETE FROM user WHERE id = '%s'"), m_list.GetItemText(id[i], 0));
+		if (mysql_query(&Connect, (CStringA)query))
+		{
+			MessageBox(_T("Delete Error"));
+		}
+	}
+}
+
 
 void AdminUserDlg::OnHdnItemClickList(NMHDR *pNMHDR, LRESULT *pResult)
 {
