@@ -36,4 +36,5 @@ public:
 	CButton m_CheckTitle;
 	CWnd *pParent;
 	afx_msg void OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 };

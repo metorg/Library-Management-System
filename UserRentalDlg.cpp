@@ -428,3 +428,25 @@ void UserRentalDlg::OnClickListBooks(NMHDR *pNMHDR, LRESULT *pResult) //리스�
 
 	*pResult = 0;
 }
+
+BOOL UserRentalDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN)
+	{
+		if (GetDlgItem(IDC_EDIT_SEARCH) == GetFocus())
+		{
+			if (pMsg->wParam == VK_RETURN)
+			{
+				OnBntClickedButtonSearch();
+			}
+		}
+		switch (pMsg->wParam)
+		{
+			case VK_RETURN:
+			case VK_ESCAPE:
+				return TRUE;
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
